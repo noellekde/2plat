@@ -1,0 +1,85 @@
+name: Release
+
+# Push a tag like v0.1.0 (or v0.2.0-beta.1 for a pre-release) to build the Windows
+# app and publish it to the <owner>/2plat-release repo.
+#
+# One-time setup: create a fine-grained personal access token with
+# "Contents: Read and write" on the 2plat-release repo and save it in THIS repo as
+# the Actions secret RELEASE_TOKEN. (The built-in GITHUB_TOKEN can't write to another repo.)
+
+on:
+  push:
+    tags: ['v*']
+
+permissions:
+  contents: read
+
+jobs:
+  release:
+    runs-on: windows-latest
+    env:
+      TAG: ${{ github.ref_name }}
+      RELEASE_REPO: ${{ github.repository_owner }}/2plat-release
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Tag must match package.json version
+        shell: bash
+        run: |
+          v=$(node -p "require('./package.json').version")
+          if [ "v$v" != "$TAG" ]; then
+            echo "Tag $TAG does not match package.json version v$v"; exit 1
+          fi
+          grep -q "^## $v\$" CHANGELOG.md || { echo "CHANGELOG.md has no '## $v' section"; exit 1; }
+
+      - name: Build Windows app
+        shell: cmd
+        run: build-exe.bat
+
+      - name: Smoke test (exe + CLI)
+        shell: pwsh
+        run: |
+          $ErrorActionPreference = 'Stop'
+          $app = Join-Path $PWD '2plat-win32-x64'
+          if (-not (Test-Path "$app\2plat.exe")) { throw '2plat.exe missing' }
+          $cli = "$app\2plat-cli.cmd"
+          $work = Join-Path $env:RUNNER_TEMP 'smoke'
+          New-Item -ItemType Directory -Force $work | Out-Null
+          Set-Location $work
+          function Run { & $cli @args; if ($LASTEXITCODE -ne 0) { throw "2plat-cli $args failed ($LASTEXITCODE)" } }
+          Run version
+          Run new smoke --size 160x144
+          Set-Content -Path dot.txt -Value "@name dot`n@palette x=#ff0000`nxx`nxx"
+          Run push-code smoke dot.txt
+          Run sprites smoke
+          Run export smoke smoke.html
+          if ((Get-Item smoke.html).Length -lt 20000) { throw 'exported game looks too small' }
+
+      - name: Zip
+        shell: pwsh
+        run: |
+          $name = "2plat-$env:TAG-win-x64"
+          Rename-Item 2plat-win32-x64 $name
+          Compress-Archive -Path $name -DestinationPath "$name.zip"
+          (Get-FileHash "$name.zip" -Algorithm SHA256).Hash.ToLower() + "  $name.zip" | Set-Content "$name.zip.sha256"
+
+      - name: Release notes from CHANGELOG
+        shell: bash
+        run: |
+          v="${TAG#v}"
+          awk -v v="$v" '$0=="## " v {f=1; next} /^## /{f=0} f' CHANGELOG.md > notes.md
+          [ -s notes.md ] || echo "2plat $TAG" > notes.md
+          {
+            echo
+            echo "**Install:** download the zip, extract it, run \`2plat.exe\`. Windows may show a SmartScreen warning because the app is unsigned: More info, then Run anyway."
+          } >> notes.md
+
+      - name: Publish to release repo
+        shell: bash
+        env:
+          GH_TOKEN: ${{ secrets.RELEASE_TOKEN }}
+        run: |
+          flags=""
+          case "$TAG" in *-*) flags="--prerelease";; esac
+          gh release create "$TAG" "2plat-$TAG-win-x64.zip" "2plat-$TAG-win-x64.zip.sha256" \
+            --repo "$RELEASE_REPO" --title "2plat $TAG" --notes-file notes.md $flags
