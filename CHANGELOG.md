@@ -3,6 +3,10 @@
 Each release section starts with `## <version>`. The release workflow copies the
 section matching the tag into the GitHub Release notes, so write it before tagging.
 
+## 0.1.2
+
+- **Palettes** button in the top bar: pick the color palette the sprite editor uses. 2PL-32 is the default. **HLW-5** (the five Halloween colors) is there until October 31, 2026, then it disappears and the editor goes back to 2PL-32.
+
 ## 0.1.1
 
 - **Halloween Event** (limited time): a purple, orange, neon green and blue look for the editor. Turn it on in Settings under "Halloween Event". It switches off for good after October 31, 2026.

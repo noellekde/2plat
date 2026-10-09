@@ -49,7 +49,7 @@ Only `.png` images are accepted by `push-png`. **Pixel code** is plain text: one
 
 ## Halloween Event
 
-Until October 31, 2026, Settings has a "Halloween Event" switch that gives the editor a purple, orange, neon green and blue look. The code is in `src/events.js` and the colors are the `data-theme='halloween'` block at the end of `src/style.css`. After the end date the switch disappears and the theme is off whatever was saved. To retire it early or for good, delete `src/events.js`, its script tag in `index.html`, the `halloween` block in `ed_settings.js`, the `announce` line in `app.js`, and the theme CSS.
+Until October 31, 2026, Settings has a "Halloween Event" switch that gives the editor a purple, orange, neon green and blue look. The code is in `src/events.js` and the colors are the `data-theme='halloween'` block at the end of `src/style.css`. The same event adds the HLW-5 palette to the **Palettes** menu in the top bar (the default palette is 2PL-32; palettes live in `src/palettes.js`). After the end date the switch and the HLW-5 palette disappear and the editor is back to normal, whatever was saved. To retire it early or for good, delete `src/events.js`, its script tag in `index.html`, the HLW-5 entry in `src/palettes.js`, the `halloween` block in `ed_settings.js`, the `announce` line in `app.js`, and the theme CSS.
 
 ## Website
 

@@ -1,0 +1,10 @@
+node_modules/
+dist/
+2plat-win32-x64/
+*.zip
+*.log
+.DS_Store
+Thumbs.db
+# local test projects made with the CLI
+*.2plat
+!examples/*.2plat
