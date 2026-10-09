@@ -46,3 +46,12 @@ Only `.png` images are accepted by `push-png`. **Pixel code** is plain text: one
     ---
     ..yy..
     ..ye..
+
+## Website
+
+The `web/` folder is the project website (home page and Showcase). It is plain HTML and CSS, so you can open `web/index.html` straight from disk.
+
+- **Download button:** both pages link to the `2plat-releases` repo.
+- **Showcase:** `web/showcase.html` shows `web/100.gif`. Add a file with that name to the `web` folder. Until it exists, the page shows a note saying it is missing.
+- **Playable demo:** `web/play/sky-hopper.html` is the Sky Hopper template exported from the editor (New from template, Platformer, then Export game). Export it again after you change the runtime so the demo stays current.
+- **Publishing:** `.github/workflows/pages.yml` deploys `web/` to GitHub Pages whenever it changes. One-time setup: Settings, Pages, Source: GitHub Actions. The site is then at `https://<username>.github.io/2plat/`.
