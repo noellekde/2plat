@@ -1,7 +1,7 @@
 {
   "name": "2plat",
   "productName": "2plat",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "description": "2plat - make 2D games easily: sprite editor, level editor, visual logic, sound and music.",
   "main": "main.js",
   "scripts": {

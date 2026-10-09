@@ -1,5 +1,12 @@
 # Changelog
 
+Each release section starts with `## <version>`. The release workflow copies the
+section matching the tag into the GitHub Release notes, so write it before tagging.
+
+## 0.1.1
+
+- **Halloween Event** (limited time): a purple, orange, neon green and blue look for the editor. Turn it on in Settings under "Halloween Event". It switches off for good after October 31, 2026.
+
 ## 0.1.0
 
 First public release.
