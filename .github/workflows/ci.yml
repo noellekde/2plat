@@ -13,6 +13,16 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: 20
+      - name: Required files are present
+        run: |
+          missing=0
+          for f in index.html main.js preload.js package.json CHANGELOG.md build-exe.bat 2plat-cli.cmd build/icon.png \
+                   src/app.js src/ed_audio.js src/ed_levels.js src/ed_objects.js src/ed_settings.js src/ed_sprites.js \
+                   src/events.js src/exporter.js src/palettes.js src/runtime.js src/style.css src/templates.js src/ui.js \
+                   cli/2plat.js cli/2plat.cmd; do
+            if [ ! -f "$f" ]; then echo "::error::Missing file: $f (upload it again; folder uploads can be incomplete)"; missing=1; fi
+          done
+          exit $missing
       - name: Syntax check
         run: |
           for f in main.js preload.js src/*.js cli/2plat.js; do node --check "$f"; done
