@@ -203,6 +203,7 @@
         h('button', { class: 'btn', onclick: () => App.showTemplates() }, '📄 New'), h('button', { class: 'btn', onclick: openProject }, '📂 Open'),
         h('button', { class: 'btn', onclick: () => saveProject(false), title: 'Ctrl+S' }, '💾 Save'),
         h('button', { class: 'btn', onclick: () => App.exportHtml() }, '🌐 Export game'),
+        h('button', { class: 'btn', title: 'Choose the color palette for the sprite editor', onclick: () => Plat2Palettes.openMenu(() => App.editors.sprites.paletteChanged()) }, '🎨 Palettes'),
         h('span', { class: 'spacer' }),
         h('button', { class: 'btn', onclick: showHelp }, '? Help'),
         h('button', { class: 'btn play', title: 'F5', onclick: () => App.play({}) }, '▶ Play')),

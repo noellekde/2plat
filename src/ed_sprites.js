@@ -1,11 +1,6 @@
 /* 2plat: pixel art / sprite editor */
 (function () {
   'use strict';
-  const PALETTE = ['#000000', '#1a1c2c', '#5d275d', '#b13e53', '#ef7d57', '#ffcd75', '#a7f070', '#38b764',
-    '#257179', '#29366f', '#3b5dc9', '#41a6f6', '#73eff7', '#f4f4f4', '#94b0c2', '#566c86',
-    '#333c57', '#8b5a2b', '#a5703b', '#5c3a1e', '#ffffff', '#ff0044', '#ff8800', '#ffee00',
-    '#00cc44', '#00bbff', '#8844ff', '#ff44cc', '#aa7744', '#445566', '#99aabb', '#ddeeff'];
-
   const SE = {
     id: null, frame: 0, tool: 'pencil', color: '#ffffff', mirror: false, grid: true, onion: false, brush: 1,
     zoom: 16, undo: [], redo: [], cv: [], ready: false, stroke: null, recent: [], timer: null, previewFrame: 0,
@@ -274,10 +269,12 @@
   }
   function renderColors() {
     if (!els.colors) return;
+    const pal = Plat2Palettes.current();
+    if (els.colorsTitle) els.colorsTitle.textContent = 'Colors (' + pal.name + ')';
     els.colors.replaceChildren(
       h('div', { class: 'row', style: { marginBottom: '6px' } }, h('input', { type: 'color', value: SE.color, oninput: (e) => { SE.color = e.target.value; } , onchange: (e) => { SE.color = e.target.value; addRecent(SE.color); } }),
         h('span', { class: 'pill' }, SE.color)),
-      h('div', { class: 'swatches' }, PALETTE.map((c) => h('div', { class: 'swatch' + (c === SE.color ? ' sel' : ''), style: { background: c }, title: c, onclick: () => { SE.color = c; if (SE.tool === 'eraser') SE.tool = 'pencil'; renderColors(); renderTools(); } }))),
+      h('div', { class: 'swatches' }, pal.colors.map((c) => h('div', { class: 'swatch' + (c === SE.color ? ' sel' : ''), style: { background: c }, title: c, onclick: () => { SE.color = c; if (SE.tool === 'eraser') SE.tool = 'pencil'; renderColors(); renderTools(); } }))),
       SE.recent.length ? h('div', { class: 'lbl' }, 'Recent') : null,
       SE.recent.length ? h('div', { class: 'swatches' }, SE.recent.map((c) => h('div', { class: 'swatch' + (c === SE.color ? ' sel' : ''), style: { background: c }, onclick: () => { SE.color = c; renderColors(); } }))) : null);
   }
@@ -343,7 +340,7 @@
         h('div', { class: 'row', style: { marginTop: '6px' } }, h('span', { class: 'muted' }, 'Shift'),
           h('button', { class: 'btn small', onclick: () => tShift(-1, 0) }, '←'), h('button', { class: 'btn small', onclick: () => tShift(0, -1) }, '↑'),
           h('button', { class: 'btn small', onclick: () => tShift(0, 1) }, '↓'), h('button', { class: 'btn small', onclick: () => tShift(1, 0) }, '→'))),
-      h('div', { class: 'panel-box' }, h('h4', null, 'Colors'), els.colors = h('div')));
+      h('div', { class: 'panel-box' }, els.colorsTitle = h('h4', { title: 'Colors in the selected palette. Change it with Palettes in the top bar.' }, 'Colors'), els.colors = h('div')));
     els.frames = els.props.querySelector('.frames'); els.colors = els.props.lastChild.lastChild; els.preview = els.props.querySelector('canvas');
     renderFrames(); renderColors(); renderPreview(); startAnim();
   }
@@ -385,5 +382,11 @@
     return false;
   }
   function reset() { SE.id = null; SE.cv = []; SE.undo = []; SE.redo = []; SE.frame = 0; }
-  App.editors.sprites = { title: 'Sprites', icon: '🎨', mount, show, onKey, reset, select, refresh: () => { renderList(); } };
+  /* Called after a new palette is chosen in the top bar menu. */
+  function paletteChanged() {
+    const pal = Plat2Palettes.current();
+    if (!pal.colors.includes(SE.color)) { SE.color = pal.colors[0]; if (SE.tool === 'eraser') SE.tool = 'pencil'; }
+    renderColors(); if (typeof renderTools === 'function') renderTools();
+  }
+  App.editors.sprites = { title: 'Sprites', icon: '🎨', mount, show, onKey, reset, select, refresh: () => { renderList(); }, paletteChanged };
 })();

@@ -24,7 +24,7 @@
       h('div', { class: 'section-title' }, 'Halloween Event'),
       h('label', { class: 'chk' },
         h('input', { type: 'checkbox', checked: EV.enabled(), onchange: (e) => { EV.set(e.target.checked); render(); } }), 'Spooky colors'),
-      h('p', { class: 'hint' }, 'A limited-time look for the editor. It switches off for good after October 31, 2026 (' + EV.daysLabel() + ').'),
+      h('p', { class: 'hint' }, 'A limited-time look for the editor. The HLW-5 palette is in Palettes in the top bar. Both switch off for good after October 31, 2026 (' + EV.daysLabel() + ').'),
       h('div', { class: 'row', style: { gap: '6px', marginBottom: '6px' } },
         ...EV.palette.map(([name, hex]) => h('div', { title: name + ' ' + hex, style: { width: '34px', height: '34px', borderRadius: '6px', background: hex, border: '2px solid var(--border)' } })))) : null;
     body.replaceChildren(h('div', { class: 'cols', style: { maxWidth: '1100px' } },
