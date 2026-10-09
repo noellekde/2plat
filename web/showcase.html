@@ -1,0 +1,73 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Showcase | 2plat</title>
+  <meta name="description" content="Games and sprites made with 2plat.">
+  <meta name="theme-color" content="#cdeefa">
+  <link rel="icon" href="icon.png" type="image/png">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Atkinson+Hyperlegible:wght@400;700&family=Pixelify+Sans:wght@500;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <header class="site-head">
+    <div class="wrap">
+      <a class="wordmark" href="index.html">2plat</a>
+      <nav class="site-nav" aria-label="Main">
+        <a href="index.html">Home</a>
+        <a href="showcase.html" aria-current="page">Showcase</a>
+        <a href="index.html#download">Download</a>
+      </nav>
+    </div>
+  </header>
+
+  <main>
+    <section class="page-head">
+      <div class="wrap">
+        <h1>Showcase</h1>
+        <p>Games and sprites made with 2plat.</p>
+      </div>
+    </section>
+
+    <section class="section" style="padding-top: 0">
+      <div class="wrap">
+        <figure class="showcase-frame" id="showcase-100">
+          <img src="100.gif" alt="A game made with 2plat">
+          <div class="missing">
+            <h3>100.gif is missing</h3>
+            <p>Put a file named <code>100.gif</code> in the <code>web</code> folder, next to <code>showcase.html</code>, and it shows up here.</p>
+          </div>
+        </figure>
+        <div class="btn-row">
+          <a class="btn alt" href="play/sky-hopper.html">Play Sky Hopper full screen</a>
+          <a class="btn" href="index.html#download">Download 2plat</a>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <footer class="ground">
+    <div class="grass" aria-hidden="true"></div>
+    <div class="dirt">
+      <div class="wrap">
+        <span>2plat is open source under the MIT license. Made by Noelle.</span>
+        <a href="https://github.com/noellekde/2plat">Source code on GitHub</a>
+      </div>
+    </div>
+  </footer>
+
+  <script>
+    // If 100.gif can't be loaded, show the note instead of a broken image.
+    (function () {
+      var frame = document.getElementById('showcase-100');
+      var img = frame.querySelector('img');
+      function missing() { frame.setAttribute('data-missing', ''); }
+      img.addEventListener('error', missing);
+      if (img.complete && img.naturalWidth === 0) missing();
+    })();
+  </script>
+</body>
+</html>
