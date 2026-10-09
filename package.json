@@ -1,0 +1,38 @@
+{
+  "name": "2plat",
+  "productName": "2plat",
+  "version": "0.1.0",
+  "description": "2plat - make 2D games easily: sprite editor, level editor, visual logic, sound and music.",
+  "main": "main.js",
+  "scripts": {
+    "start": "electron .",
+    "package:win": "electron-packager . 2plat --platform=win32 --arch=x64 --out=dist --overwrite --ignore=\"^/(dist|build/(?!icon))\"",
+    "build:win": "electron-builder --win portable"
+  },
+  "author": "2plat",
+  "license": "MIT",
+  "devDependencies": {
+    "electron": "^33.0.0",
+    "@electron/packager": "^18.3.0",
+    "electron-builder": "^25.1.8"
+  },
+  "build": {
+    "appId": "com.twoplat.app",
+    "productName": "2plat",
+    "files": [
+      "main.js",
+      "preload.js",
+      "index.html",
+      "src/**/*",
+      "cli/**/*",
+      "build/icon.png"
+    ],
+    "win": {
+      "target": "portable",
+      "icon": "build/icon.png"
+    }
+  },
+  "bin": {
+    "2plat": "cli/2plat.js"
+  }
+}
