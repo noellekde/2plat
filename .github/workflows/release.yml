@@ -1,12 +1,5 @@
 name: Release
 
-# Push a tag like v0.1.0 (or v0.2.0-beta.1 for a pre-release) to build the Windows
-# app and publish it to the <owner>/2plat-releases repo.
-#
-# One-time setup: create a fine-grained personal access token with
-# "Contents: Read and write" on the 2plat-releases repo and save it in THIS repo as
-# the Actions secret RELEASE_TOKEN. (The built-in GITHUB_TOKEN can't write to another repo.)
-
 on:
   push:
     tags: ['v*']
