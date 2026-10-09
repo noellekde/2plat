@@ -1,8 +1,5 @@
 # Changelog
 
-Each release section starts with `## <version>`. The release workflow copies the
-section matching the tag into the GitHub Release notes, so write it before tagging.
-
 ## 0.1.0
 
 First public release.
