@@ -1,0 +1,28 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+      - name: Syntax check
+        run: |
+          for f in main.js preload.js src/*.js cli/2plat.js; do node --check "$f"; done
+      - name: CLI smoke test
+        run: |
+          cd "$RUNNER_TEMP"
+          node "$GITHUB_WORKSPACE/cli/2plat.js" version
+          node "$GITHUB_WORKSPACE/cli/2plat.js" new smoke --size 160x144
+          printf '@name dot\n@palette x=#ff0000\nxx\nxx\n' > dot.txt
+          node "$GITHUB_WORKSPACE/cli/2plat.js" push-code smoke dot.txt
+          node "$GITHUB_WORKSPACE/cli/2plat.js" sprites smoke
+          node "$GITHUB_WORKSPACE/cli/2plat.js" export smoke smoke.html
+          test "$(wc -c < smoke.html)" -gt 20000
