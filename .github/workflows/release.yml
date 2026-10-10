@@ -58,8 +58,13 @@ jobs:
       - name: Zip
         shell: pwsh
         run: |
+          $ErrorActionPreference = 'Stop'
+          # Make sure nothing from the smoke test is still holding the app folder open.
+          Get-Process -Name '2plat' -ErrorAction SilentlyContinue | Stop-Process -Force
+          Start-Sleep -Seconds 3
           $name = "2plat-$env:TAG-win-x64"
-          Rename-Item 2plat-win32-x64 $name
+          # Copy instead of renaming: Windows can refuse to rename a folder it has only just finished using.
+          Copy-Item -Recurse 2plat-win32-x64 $name
           Compress-Archive -Path $name -DestinationPath "$name.zip"
           (Get-FileHash "$name.zip" -Algorithm SHA256).Hash.ToLower() + "  $name.zip" | Set-Content "$name.zip.sha256"
 
