@@ -88,7 +88,7 @@
       h('div', { class: 'workarea', style: { background: 'var(--bg)' } }, sel.form));
   }
   function showSounds() { if (!cur()) SO.id = App.proj.sounds[0] ? App.proj.sounds[0].id : null; renderSoundList(); renderSoundForm(); }
-  App.editors.sounds = { title: 'Sounds', icon: '🔊', mount: mountSounds, show: showSounds, reset: () => { SO.id = null; }, refresh: renderSoundList };
+  App.editors.sounds = { title: 'Sounds', icon: '', iconName: 'sounds', mount: mountSounds, show: showSounds, reset: () => { SO.id = null; }, refresh: renderSoundList };
 
   /* ======================================================== MUSIC */
   const MU = { id: null, track: 0, base: 48, rows: 36, scale: 'pentatonic', root: 0, playing: false, step: -1, drag: null };
@@ -231,5 +231,5 @@
     if (me.roll) me.roll.style.display = mcur() ? '' : 'none';
     if (me.hint) me.hint.style.display = mcur() ? 'none' : 'block';
   }
-  App.editors.music = { title: 'Music', icon: '🎵', mount: mountMusic, show: showMusic, hide: () => { if (MU.playing) stopPlay(); }, reset: () => { if (MU.playing) stopPlay(); MU.id = null; MU.track = 0; }, refresh: renderMusicList };
+  App.editors.music = { title: 'Music', icon: '', iconName: 'music', mount: mountMusic, show: showMusic, hide: () => { if (MU.playing) stopPlay(); }, reset: () => { if (MU.playing) stopPlay(); MU.id = null; MU.track = 0; }, refresh: renderMusicList };
 })();

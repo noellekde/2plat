@@ -47,14 +47,18 @@ Only `.png` images are accepted by `push-png`. **Pixel code** is plain text: one
     ..yy..
     ..ye..
 
-## Halloween Event
+## Palettes
 
-Until October 31, 2026, Settings has a "Halloween Event" switch that gives the editor a purple, orange, neon green and blue look. The code is in `src/events.js` and the colors are the `data-theme='halloween'` block at the end of `src/style.css`. The same event adds the HLW-5 palette to the **Palettes** menu in the top bar (the default palette is 2PL-32; palettes live in `src/palettes.js`). After the end date the switch and the HLW-5 palette disappear and the editor is back to normal, whatever was saved. To retire it early or for good, delete `src/events.js`, its script tag in `index.html`, the HLW-5 entry in `src/palettes.js`, the `halloween` block in `ed_settings.js`, the `announce` line in `app.js`, and the theme CSS.
+The **Palettes** button in the top bar chooses the sprite editor's colors: 2PL-32 (default), NITE-16 and POP-16. Palettes live in `src/palettes.js`; add an entry there to add your own.
+
+## First-run tour
+
+The first time a project is picked, a short tour points out the tabs, Play and Export. It is `src/tour.js`; Help > Take the tour runs it again.
+
+## Game feel and screens
+
+The runtime (`src/runtime.js`) draws everything with a built-in pixel font and gives games: title, pause, win and game-over menus (keyboard or mouse), iris transitions between levels, a hearts-and-score HUD, best-score saving, squash and stretch, dust, hit-stop, screen shake and a camera that looks ahead. Levels can also have a **Backdrop** (hills, city, night sky, cave) and **Lighting** (soft vignette or torch light), set in the Levels tab.
 
 ## Website
 
-The `web/` folder is the project website (one home page with a playable demo). It is plain HTML and CSS, so you can open `web/index.html` straight from disk.
-
-- **Download button:** the page links to the `2plat-releases` repo.
-- **Playable demo:** `web/play/sky-hopper.html` is the Sky Hopper template exported from the editor (New from template, Platformer, then Export game). Export it again after you change the runtime so the demo stays current.
-- **Publishing:** `.github/workflows/pages.yml` deploys `web/` to GitHub Pages whenever it changes. One-time setup: Settings, Pages, Source: GitHub Actions. The site is then at `https://<username>.github.io/2plat/`.
+The project website lives on the `web` branch, not on `main`. That branch holds the site at its root: `index.html`, `style.css`, `icon.png`, and `play/sky-hopper.html` (the Sky Hopper template exported from the editor, used as the playable demo; export it again after you change the runtime so it stays current). GitHub Pages is set to deploy from that branch: Settings, Pages, Deploy from a branch, branch `web`, folder `/ (root)`. The site is then at `https://<username>.github.io/2plat/`.

@@ -302,7 +302,7 @@
     }, 1000 / Math.max(1, (sp() && sp().fps) || 6));
   }
   const TOOLS = [['pencil', '✏️', 'Pencil (B)'], ['eraser', '🧽', 'Eraser (E, or right-click)'], ['fill', '🪣', 'Fill (G)'], ['picker', '💧', 'Color picker (I)'],
-    ['line', '／', 'Line (L)'], ['rect', '▭', 'Rectangle (R)'], ['rectf', '■', 'Filled rectangle'], ['ellipse', '◯', 'Ellipse (O)'], ['ellipsef', '●', 'Filled ellipse']];
+    ['line', '／', 'Line (L)'], ['rect', '▭', 'Rectangle (R)'], ['rectf', '▣', 'Filled rectangle'], ['ellipse', '◯', 'Ellipse (O)'], ['ellipsef', '◉', 'Filled ellipse']];
   function renderTools() {
     if (!els.tools) return;
     els.tools.replaceChildren(
@@ -331,7 +331,7 @@
       h('div', { class: 'panel-box' }, h('h4', null, 'Frames'), els.frames = h('div', { class: 'frames' }),
         h('div', { class: 'row', style: { marginTop: '8px' } },
           h('button', { class: 'btn small', onclick: () => addFrame(false) }, '＋ Blank'), h('button', { class: 'btn small', onclick: () => addFrame(true) }, '⧉ Copy'),
-          h('button', { class: 'btn small', onclick: () => moveFrame(-1) }, '◀'), h('button', { class: 'btn small', onclick: () => moveFrame(1) }, '▶'),
+          h('button', { class: 'btn small', title: 'Move frame earlier', onclick: () => moveFrame(-1) }, '←'), h('button', { class: 'btn small', title: 'Move frame later', onclick: () => moveFrame(1) }, '→'),
           h('button', { class: 'btn small danger', onclick: delFrame }, '🗑'))),
       h('div', { class: 'panel-box' }, h('h4', null, 'Transform frame'),
         h('div', { class: 'row' },
@@ -388,5 +388,5 @@
     if (!pal.colors.includes(SE.color)) { SE.color = pal.colors[0]; if (SE.tool === 'eraser') SE.tool = 'pencil'; }
     renderColors(); if (typeof renderTools === 'function') renderTools();
   }
-  App.editors.sprites = { title: 'Sprites', icon: '🎨', mount, show, onKey, reset, select, refresh: () => { renderList(); }, paletteChanged };
+  App.editors.sprites = { title: 'Sprites', icon: '', iconName: 'sprites', mount, show, onKey, reset, select, refresh: () => { renderList(); }, paletteChanged };
 })();

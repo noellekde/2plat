@@ -281,6 +281,8 @@
         field('Size (tiles)', w, h('span', null, '×'), hh, h('button', { class: 'btn small', onclick: () => resize(+w.value, +hh.value) }, 'Apply')),
         field('Sky top', fColor(L, 'bg', () => { App.touch(); invalidate(); })),
         field('Sky bottom', fColor(L, 'bg2', () => { App.touch(); invalidate(); }), h('button', { class: 'btn small', title: 'Use a flat color', onclick: () => { L.bg2 = ''; App.touch(); renderProps(); invalidate(); } }, 'flat')),
+        field('Backdrop', fSelect(L, 'backdrop', [['none', 'None'], ['hills', 'Hills'], ['city', 'City'], ['stars', 'Night sky'], ['cave', 'Cave']], () => { App.touch(); invalidate(); }), h('span', { class: 'muted' }, 'scenery')),
+        field('Lighting', fSelect(L, 'light', [['none', 'Normal'], ['vignette', 'Soft vignette'], ['torch', 'Torch light']], () => App.touch()), h('span', { class: 'muted' }, 'mood')),
         field('Music', fSelect(L, 'music', [['', '(game default)']].concat(App.proj.music.map((m) => [m.id, m.name])), () => App.touch()))));
   }
   async function resize(nw, nh) {
@@ -374,5 +376,5 @@
     setTimeout(() => { if (!LE.fitted || !LE.fittedFor || LE.fittedFor !== LE.id) { LE.fitted = true; LE.fittedFor = LE.id; fit(); } else invalidate(true); }, 0);
   }
   function reset() { LE.id = null; LE.sel = null; LE.undo = []; LE.redo = []; LE.picked.clear(); LE.order = null; LE.fittedFor = null; }
-  App.editors.levels = { title: 'Levels', icon: '🗺️', mount, show, onKey, onKeyUp, reset, select, refresh: () => { LE.order = null; renderList(); } };
+  App.editors.levels = { title: 'Levels', icon: '', iconName: 'levels', mount, show, onKey, onKeyUp, reset, select, refresh: () => { LE.order = null; renderList(); } };
 })();

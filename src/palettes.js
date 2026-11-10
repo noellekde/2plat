@@ -1,7 +1,7 @@
 /* 2plat: color palettes for the sprite editor.
-   2PL-32  the default palette (always there).
-   HLW-5   Halloween Event palette. Limited time: it disappears at the end of October 31, 2026
-           (the end date lives in events.js), and the editor goes back to 2PL-32.
+   2PL-32   the default palette.
+   NITE-16  deep, moody colors for dungeons and night scenes.
+   POP-16   bright, saturated colors for cheerful games.
    The chosen palette is an editor preference (saved on this computer), not part of a project. */
 (function (root) {
   'use strict';
@@ -15,21 +15,22 @@
   function read() { try { return localStorage.getItem(KEY); } catch (e) { return null; } }
   function write(v) { try { localStorage.setItem(KEY, v); } catch (e) { /* not saved: still works this session */ } }
 
+  const NITE16 = ['#07060d', '#161127', '#2b1d44', '#4a2a63', '#7a3b7a', '#b0507a', '#e07a80', '#f5b49a',
+    '#0f2a3a', '#14485a', '#1f7a7a', '#43b09a', '#9be0b4', '#31345c', '#5a6199', '#aab4e6'];
+  const POP16 = ['#1d1a2f', '#ffffff', '#ff4d6d', '#ff8a3d', '#ffd23f', '#b6e04a', '#2ec27e', '#18c4c4',
+    '#3aa0ff', '#4b5bff', '#8e5bff', '#ff6bd6', '#7a4a2b', '#d6a56a', '#5b6075', '#c9cde0'];
+
   const ALL = [
     { id: 'pl32', name: '2PL-32', note: 'Default palette', colors: PL32 },
-    {
-      id: 'hlw5', name: 'HLW-5', note: 'Halloween Event, until October 31',
-      colors: root.Plat2Events ? root.Plat2Events.palette.map((p) => p[1]) : ['#a134eb', '#eb6e34', '#ffffff', '#00ff8c', '#0015ff'],
-      limited: true,
-    },
+    { id: 'nite16', name: 'NITE-16', note: 'Moody night and dungeon colors', colors: NITE16 },
+    { id: 'pop16', name: 'POP-16', note: 'Bright and cheerful', colors: POP16 },
   ];
 
   const Palettes = {
-    /** Palettes that can be used right now (limited ones drop out after their end date). */
-    list(now) { return ALL.filter((p) => !p.limited || (root.Plat2Events ? root.Plat2Events.available(now) : false)); },
+    list() { return ALL.slice(); },
     /** The selected palette, or the default if the saved one is gone. */
-    current(now) { const list = Palettes.list(now); return list.find((p) => p.id === read()) || list[0]; },
-    set(id, now) { const p = Palettes.list(now).find((x) => x.id === id); if (p) write(p.id); return Palettes.current(now); },
+    current() { const list = Palettes.list(); return list.find((p) => p.id === read()) || list[0]; },
+    set(id) { const p = Palettes.list().find((x) => x.id === id); if (p) write(p.id); return Palettes.current(); },
 
     /** The "Palettes" menu: one card per palette, name on top, its colors along the bottom. */
     openMenu(onChange) {
@@ -41,7 +42,7 @@
         h('div', { class: 'pal-top' }, h('b', null, p.name), p.id === cur.id ? h('span', { class: 'pal-use' }, 'in use') : null),
         h('div', { class: 'pal-note' }, p.colors.length + ' colors. ' + p.note),
         h('div', { class: 'pal-strip' }, p.colors.map((c) => h('i', { style: { background: c }, title: c })))));
-      const m = modal({ title: 'Palettes', width: 460, body: h('div', { class: 'pal-cards' }, ...cards), buttons: [{ label: 'Close' }] });
+      const m = modal({ title: 'Palettes', width: 480, body: h('div', { class: 'pal-cards' }, ...cards), buttons: [{ label: 'Close' }] });
     },
   };
 

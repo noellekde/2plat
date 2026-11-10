@@ -9,27 +9,37 @@
   };
   const hash = (x, y) => (((x * 73856093) ^ (y * 19349663)) >>> 0) % 100;
 
-  function canvasURL(w, h, paint) {
+  function canvasURL(w, h, paint, ol) {
     if (typeof document === 'undefined') return 'data:image/png;base64,iVBORw0KGgo=';
     const c = document.createElement('canvas'); c.width = w; c.height = h;
-    paint(c.getContext('2d'));
+    const x = c.getContext('2d');
+    paint(x);
+    if (ol) { // 1px dark outline around the opaque pixels: makes characters and items pop off any background
+      const d = x.getImageData(0, 0, w, h), a = d.data, out = [];
+      for (let y = 0; y < h; y++) for (let px = 0; px < w; px++) {
+        if (a[(y * w + px) * 4 + 3] > 0) continue;
+        const nb = (xx, yy) => xx >= 0 && yy >= 0 && xx < w && yy < h && a[(yy * w + xx) * 4 + 3] > 0;
+        if (nb(px - 1, y) || nb(px + 1, y) || nb(px, y - 1) || nb(px, y + 1)) out.push([px, y]);
+      }
+      x.fillStyle = '#12131f'; out.forEach(([px, y]) => x.fillRect(px, y, 1, 1));
+    }
     return c.toDataURL();
   }
-  function art(rows, w, h) {
+  function art(rows, w, h, ol) {
     w = w || 16; h = h || 16;
     return canvasURL(w, h, (x) => {
       for (let y = 0; y < h; y++) {
         const r = (rows[y] || '').padEnd(w, '.');
         for (let px = 0; px < w; px++) { const ch = r[px]; if (ch !== '.' && PAL[ch]) { x.fillStyle = PAL[ch]; x.fillRect(px, y, 1, 1); } }
       }
-    });
+    }, ol);
   }
-  function gen(w, h, fn) {
+  function gen(w, h, fn, ol) {
     return canvasURL(w, h, (x) => {
       for (let y = 0; y < h; y++) for (let px = 0; px < w; px++) {
         const k = fn(px, y); if (k) { x.fillStyle = PAL[k] || k; x.fillRect(px, y, 1, 1); }
       }
-    });
+    }, ol);
   }
   const bob = (rows) => ['................'].concat(rows.slice(0, 12), rows.slice(13)).slice(0, 16).map((r, i) => (i === 0 ? r : r));
 
@@ -52,11 +62,11 @@
     const ell = (rx) => gen(16, 16, (x, y) => {
       const dx = (x - 7.5) / Math.max(rx, 0.6), dy = (y - 7.5) / 5.2, d = dx * dx + dy * dy;
       if (d > 1) return null; if (d > 0.62) return 'd'; return (x < 7 && y < 8 && d < 0.3) ? 'm' : 'e';
-    });
+    }, true);
     return [
-      S('sp_player', 'player_idle', 16, 16, 2, [art(pl(legs.idle)), art(bob(pl(legs.idle)))]),
-      S('sp_player_run', 'player_run', 16, 16, 10, [art(pl(legs.runA)), art(pl(legs.runB))]),
-      S('sp_player_jump', 'player_jump', 16, 16, 1, [art(pl(legs.jump))]),
+      S('sp_player', 'player_idle', 16, 16, 2, [art(pl(legs.idle), 16, 16, true), art(bob(pl(legs.idle)), 16, 16, true)]),
+      S('sp_player_run', 'player_run', 16, 16, 10, [art(pl(legs.runA), 16, 16, true), art(pl(legs.runB), 16, 16, true)]),
+      S('sp_player_jump', 'player_jump', 16, 16, 1, [art(pl(legs.jump), 16, 16, true)]),
       S('sp_grass', 'grass', 16, 16, 1, [gen(16, 16, (x, y) => {
         if (y === 0) return 'f'; if (y === 1) return hash(x, y) < 40 ? 'f' : 'g'; if (y === 2) return hash(x, y) < 25 ? 'g' : 'q';
         const h = hash(x, y); return h < 10 ? 's' : h < 22 ? 'r' : 'q';
@@ -72,11 +82,11 @@
       S('sp_movplat', 'moving_platform', 32, 8, 1, [gen(32, 8, (x, y) => (y === 0 ? 'n' : y === 7 ? 'p' : (x % 8 === 0 ? 'p' : 'o')))]),
       S('sp_coin', 'coin', 16, 16, 8, [ell(5), ell(3), ell(1), ell(3)]),
       S('sp_slime', 'slime', 16, 16, 4, [
-        art(['', '', '', '', '', '', '', '.....bbbbbb.....', '...bbbbbbbbbb...', '..bbmmbbbbmmbb..', '.bbbmabbbbmabbb.', '.bbbbbbbbbbbbbb.', '.bbbbbbbbbbbbbb.', '.bbbbbbbbbbbbbb.', '..bbbbbbbbbbbb..']),
-        art(['', '', '', '', '', '', '', '', '......bbbb......', '....bbbbbbbb....', '..bbbmmbbmmbbb..', '.bbbbmabbmabbbb.', '.bbbbbbbbbbbbbb.', '.bbbbbbbbbbbbbb.', '.bbbbbbbbbbbbbb.', '..bbbbbbbbbbbb..'])]),
+        art(['', '', '', '', '', '', '', '.....bbbbbb.....', '...bbbbbbbbbb...', '..bbmmbbbbmmbb..', '.bbbmabbbbmabbb.', '.bbbbbbbbbbbbbb.', '.bbbbbbbbbbbbbb.', '.bbbbbbbbbbbbbb.', '..bbbbbbbbbbbb..'], 16, 16, true),
+        art(['', '', '', '', '', '', '', '', '......bbbb......', '....bbbbbbbb....', '..bbbmmbbmmbbb..', '.bbbbmabbmabbbb.', '.bbbbbbbbbbbbbb.', '.bbbbbbbbbbbbbb.', '.bbbbbbbbbbbbbb.', '..bbbbbbbbbbbb..'], 16, 16, true)]),
       S('sp_bat', 'bat', 16, 16, 8, [
-        art(['', '', '.b..........b...', '.bb........bb...', '.bbb..bb..bbb...', '.bbbbbbbbbbbb...', '..bbbbbbbbbb....', '...bbcbbcbb.....', '....bbbbbb......', '.....b..b.......']),
-        art(['', '', '', '......bbbb......', '.....bbbbbb.....', '..b.bbcbbcbb.b..', '.bbbbbbbbbbbbbb.', '.bb..bbbbbb..bb.', '.b....b..b....b.'])]),
+        art(['', '', '.b..........b...', '.bb........bb...', '.bbb..bb..bbb...', '.bbbbbbbbbbbb...', '..bbbbbbbbbb....', '...bbcbbcbb.....', '....bbbbbb......', '.....b..b.......'], 16, 16, true),
+        art(['', '', '', '......bbbb......', '.....bbbbbb.....', '..b.bbcbbcbb.b..', '.bbbbbbbbbbbbbb.', '.bb..bbbbbb..bb.', '.b....b..b....b.'], 16, 16, true)]),
       S('sp_spike', 'spike', 16, 16, 1, [gen(16, 16, (x, y) => {
         const t = 8 - Math.abs((x % 8) - 3.5) * 2.3; if (y < 16 - t) return null; return y < 16 - t + 1.2 ? 'm' : 'n';
       })]),
@@ -106,11 +116,11 @@
       })]),
       S('sp_floor', 'dungeon_floor', 16, 16, 1, [gen(16, 16, (x, y) => (((x >> 3) + (y >> 3)) % 2 ? 'a' : (hash(x, y) < 6 ? 'p' : '#20233a')))]),
       S('sp_ghost', 'ghost', 16, 16, 4, [
-        art(['', '.....mmmmmm.....', '...mmmmmmmmmm...', '..mmmmmmmmmmmm..', '..mmammmmmmamm..', '..mmammmmmmamm..', '..mmmmmmmmmmmm..', '..mmmmmaammmmm..', '..mmmmmmmmmmmm..', '..mmmmmmmmmmmm..', '..mmmmmmmmmmmm..', '..mm.mmmm.mmmm..', '..m...mm...mm...']),
-        art(['', '', '.....mmmmmm.....', '...mmmmmmmmmm...', '..mmmmmmmmmmmm..', '..mmammmmmmamm..', '..mmammmmmmamm..', '..mmmmmmmmmmmm..', '..mmmmmaammmmm..', '..mmmmmmmmmmmm..', '..mmmmmmmmmmmm..', '..mmmmmmmmmmmm..', '..mmm.mmmm.mmm..'])]),
+        art(['', '.....mmmmmm.....', '...mmmmmmmmmm...', '..mmmmmmmmmmmm..', '..mmammmmmmamm..', '..mmammmmmmamm..', '..mmmmmmmmmmmm..', '..mmmmmaammmmm..', '..mmmmmmmmmmmm..', '..mmmmmmmmmmmm..', '..mmmmmmmmmmmm..', '..mm.mmmm.mmmm..', '..m...mm...mm...'], 16, 16, true),
+        art(['', '', '.....mmmmmm.....', '...mmmmmmmmmm...', '..mmmmmmmmmmmm..', '..mmammmmmmamm..', '..mmammmmmmamm..', '..mmmmmmmmmmmm..', '..mmmmmaammmmm..', '..mmmmmmmmmmmm..', '..mmmmmmmmmmmm..', '..mmmmmmmmmmmm..', '..mmm.mmmm.mmm..'], 16, 16, true)]),
       S('sp_gem', 'gem', 16, 16, 6, [
-        gen(16, 16, (x, y) => { const d = Math.abs(x - 7.5) / 5 + Math.abs(y - 7.5) / 6; return d > 1 ? null : d > 0.8 ? 'k' : (x < 7 && y < 7 ? 'm' : 'l'); }),
-        gen(16, 16, (x, y) => { const d = Math.abs(x - 7.5) / 5 + Math.abs(y - 7.5) / 6; return d > 1 ? null : d > 0.8 ? 'j' : (x > 8 && y < 7 ? 'm' : 'k'); })]),
+        gen(16, 16, (x, y) => { const d = Math.abs(x - 7.5) / 5 + Math.abs(y - 7.5) / 6; return d > 1 ? null : d > 0.8 ? 'k' : (x < 7 && y < 7 ? 'm' : 'l'); }, true),
+        gen(16, 16, (x, y) => { const d = Math.abs(x - 7.5) / 5 + Math.abs(y - 7.5) / 6; return d > 1 ? null : d > 0.8 ? 'j' : (x > 8 && y < 7 ? 'm' : 'k'); }, true)]),
       S('sp_door', 'exit_door', 16, 16, 1, [gen(16, 16, (x, y) => {
         if (y < 2 || x < 2 || x > 13) return 'n'; if (x === 11 && y === 9) return 'e'; return y < 4 ? 'q' : (x % 4 === 2 ? 's' : 'r');
       })]),
@@ -260,7 +270,7 @@
         return api;
       },
       pillar(o, x, top, bottom) { return api.col(o, x, top, bottom == null ? h - 1 : bottom); },
-      build(id, name, bg, bg2, music) { return { id, name, w, h, bg, bg2, music: music || '', instances: inst }; },
+      build(id, name, bg, bg2, music, fx) { return Object.assign({ id, name, w, h, bg, bg2, music: music || '', backdrop: 'none', light: 'none', instances: inst }, fx || {}); },
     };
     return api;
   }
@@ -287,7 +297,7 @@
     b.row('o_stone', 60, 60, 9).row('o_stone', 61, 61, 8).row('o_stone', 62, 62, 7).row('o_stone', 60, 60, 8).row('o_stone', 60, 60, 7).row('o_stone', 61, 61, 7);
     b.put('o_coin', 56, 8).put('o_coin', 57, 8).put('o_coin', 58, 8);
     b.put('o_flag', 69, 9);
-    const l1 = b.build('lv1', 'Level 1 - Green Hills', '#41a6f6', '#a7f070', 'm_main');
+    const l1 = b.build('lv1', 'Level 1 - Green Hills', '#41a6f6', '#a7f070', 'm_main', { backdrop: 'hills' });
 
     // Level 2 — Sky Bridge
     b = LB(84, 12, 16);
@@ -305,7 +315,7 @@
     b.put('o_bat', 42, 3).put('o_bat', 70, 4);
     b.row('o_spike', 58, 59, 9);
     b.put('o_flag', 81, 9);
-    const l2 = b.build('lv2', 'Level 2 - Sky Bridge', '#3b5dc9', '#73eff7', 'm_main');
+    const l2 = b.build('lv2', 'Level 2 - Sky Bridge', '#3b5dc9', '#73eff7', 'm_main', { backdrop: 'city' });
 
     // Level 3 — Fortress
     b = LB(90, 12, 16);
@@ -322,7 +332,7 @@
     b.row('o_spike', 72, 73, 9);
     b.row('o_brick', 66, 68, 7).row('o_coin', 66, 68, 6);
     b.put('o_flag', 87, 9);
-    const l3 = b.build('lv3', 'Level 3 - Fortress', '#1a1c2c', '#5d275d', 'm_dark');
+    const l3 = b.build('lv3', 'Level 3 - Fortress', '#1a1c2c', '#5d275d', 'm_dark', { backdrop: 'stars' });
     return [l1, l2, l3];
   }
 
@@ -332,7 +342,7 @@
       for (let x = 0; x < w; x++) for (let y = 0; y < h; y++) b.put('o_dfloor', x, y);
       b.row('o_dwall', 0, w - 1, 0).row('o_dwall', 0, w - 1, h - 1).col('o_dwall', 0, 0, h - 1).col('o_dwall', w - 1, 0, h - 1);
       build(b);
-      return b.build(id, name, '#1a1c2c', '', 'm_dark');
+      return b.build(id, name, '#1a1c2c', '', 'm_dark', { light: 'torch' });
     };
     const d1 = mk('lv1', 'Floor 1', 28, 18, (b) => {
       b.col('o_dwall', 8, 1, 11).col('o_dwall', 16, 6, 16).row('o_dwall', 17, 22, 8).col('o_dwall', 22, 3, 8);
@@ -362,7 +372,7 @@
 
   const TEMPLATES = [
     {
-      id: 'blank', name: 'Blank', desc: 'Completely empty: no sprites, objects, sounds or music. Draw, build and write everything yourself.',
+      id: 'blank', tag: 'From scratch', art: { bg: ['#2a2c3a', '#15161e'], sprites: [] }, name: 'Blank', desc: 'Completely empty: no sprites, objects, sounds or music. Draw, build and write everything yourself.',
       build() {
         const lv = Templates.newLevel('Level 1', 50, 12);
         lv.id = 'lv1';
@@ -374,7 +384,7 @@
       },
     },
     {
-      id: 'platformer', name: 'Platformer: Sky Hopper', desc: '3 levels, double jump, fireballs, enemies, turrets, moving platforms, checkpoints, music.',
+      id: 'platformer', tag: 'Platformer', art: { bg: ['#41a6f6', '#a7f070'], sprites: ['sp_player', 'sp_coin', 'sp_slime'] }, name: 'Sky Hopper', desc: '3 levels, double jump, fireballs, enemies, turrets, moving platforms, checkpoints, music.',
       build() {
         return {
           format: '2plat', version: 1, name: 'Sky Hopper',
@@ -385,7 +395,7 @@
       },
     },
     {
-      id: 'topdown', name: 'Top-down: Gem Dungeon', desc: '8-way movement, chasing ghosts, gems and exits across 2 floors.',
+      id: 'topdown', tag: 'Top-down', art: { bg: ['#2b1d44', '#12131f'], sprites: ['sp_player', 'sp_gem', 'sp_ghost'] }, name: 'Gem Dungeon', desc: '8-way movement, chasing ghosts, gems and exits across 2 floors.',
       build() {
         return {
           format: '2plat', version: 1, name: 'Gem Dungeon',
@@ -400,11 +410,16 @@
   const uid = (p) => (p || 'id') + '_' + Math.random().toString(36).slice(2, 8);
   const Templates = {
     list: TEMPLATES, defObject, uid, LB,
+    preview(id) {
+      const t = TEMPLATES.find((x) => x.id === id); if (!t || !t.art || !t.art.sprites.length) return [];
+      if (!t._pv) { const lib = spriteLibrary(); t._pv = t.art.sprites.map((k) => (lib.find((x) => x.id === k) || { frames: [''] }).frames[0]); }
+      return t._pv;
+    },
     make(id) { const t = TEMPLATES.find((x) => x.id === id) || TEMPLATES[0]; return t.build(); },
     newSprite(name, w, h) {
       return { id: uid('sp'), name: name || 'sprite', w: w || 16, h: h || 16, fps: 6, frames: [canvasURL(w || 16, h || 16, () => {})] };
     },
-    newLevel(name, w, h) { return { id: uid('lv'), name: name || 'New Level', w: w || 50, h: h || 12, bg: '#41a6f6', bg2: '#a7f070', music: '', instances: [] }; },
+    newLevel(name, w, h) { return { id: uid('lv'), name: name || 'New Level', w: w || 50, h: h || 12, bg: '#41a6f6', bg2: '#a7f070', music: '', backdrop: 'none', light: 'none', instances: [] }; },
     newSound() { return { id: uid('s'), name: 'sound', wave: 'square', freq: 440, endFreq: 440, dur: 0.2, vol: 0.4, vibrato: 0, vibSpeed: 12 }; },
     newMusic() {
       const t = (wave, vol) => ({ wave, vol, len: 1, notes: new Array(32).fill(0) });

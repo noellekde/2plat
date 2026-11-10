@@ -324,5 +324,5 @@
     renderList(); renderForm();
   }
   function reset() { OE.id = null; }
-  App.editors.objects = { title: 'Objects', icon: '🧩', mount, show, reset, select, refresh: () => { renderList(); } };
+  App.editors.objects = { title: 'Objects', icon: '', iconName: 'objects', mount, show, reset, select, refresh: () => { renderList(); } };
 })();

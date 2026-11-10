@@ -18,15 +18,6 @@
       h('button', { class: 'btn small danger', onclick: () => { S.vars.splice(i, 1); S.hud = (S.hud || []).filter((n) => n !== v.name); App.touch(); render(); } }, '✕')));
     const counts = { Sprites: P.sprites.length, Objects: P.objects.length, Levels: P.levels.length, Sounds: P.sounds.length, Music: P.music.length, 'Placed objects': P.levels.reduce((n, l) => n + l.instances.length, 0) };
     const size = Math.round(JSON.stringify(P).length / 1024);
-    // Halloween Event: only exists until Oct 31, 2026 (see events.js). A look for the editor itself, not saved in the project.
-    const EV = window.Plat2Events;
-    const halloween = EV && EV.available() ? h('div', null,
-      h('div', { class: 'section-title' }, 'Halloween Event'),
-      h('label', { class: 'chk' },
-        h('input', { type: 'checkbox', checked: EV.enabled(), onchange: (e) => { EV.set(e.target.checked); render(); } }), 'Spooky colors'),
-      h('p', { class: 'hint' }, 'A limited-time look for the editor. The HLW-5 palette is in Palettes in the top bar. Both switch off for good after October 31, 2026 (' + EV.daysLabel() + ').'),
-      h('div', { class: 'row', style: { gap: '6px', marginBottom: '6px' } },
-        ...EV.palette.map(([name, hex]) => h('div', { title: name + ' ' + hex, style: { width: '34px', height: '34px', borderRadius: '6px', background: hex, border: '2px solid var(--border)' } })))) : null;
     body.replaceChildren(h('div', { class: 'cols', style: { maxWidth: '1100px' } },
       h('div', null,
         h('div', { class: 'section-title' }, 'Game'),
@@ -43,7 +34,6 @@
         ...varRows,
         h('button', { class: 'btn small', onclick: () => { S.vars.push({ name: 'var' + (S.vars.length + 1), value: 0 }); App.touch(); render(); } }, '＋ Add variable')),
       h('div', null,
-        halloween,
         h('div', { class: 'section-title' }, 'Project'),
         h('table', { class: 'help' }, ...Object.keys(counts).map((k) => h('tr', null, h('td', { class: 'muted' }, k), h('td', null, counts[k]))), h('tr', null, h('td', { class: 'muted' }, 'Project size'), h('td', null, size + ' KB'))),
         h('div', { class: 'row', style: { marginTop: '10px' } },
@@ -59,5 +49,5 @@
     root.append(h('div', { class: 'workarea', style: { background: 'var(--bg)' } }, body));
   }
   function show() { render(); }
-  App.editors.settings = { title: 'Settings', icon: '⚙️', mount, show, reset: () => { }, refresh: () => { } };
+  App.editors.settings = { title: 'Settings', icon: '', iconName: 'settings', mount, show, reset: () => { }, refresh: () => { } };
 })();

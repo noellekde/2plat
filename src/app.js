@@ -41,8 +41,11 @@
   }
   function updateStatus() {
     const st = $('#status'); if (!st || !App.proj) return; const P = App.proj;
-    st.replaceChildren(h('span', null, '🎨 ' + P.sprites.length), h('span', null, '🧩 ' + P.objects.length), h('span', null, '🗺️ ' + P.levels.length), h('span', null, '🔊 ' + P.sounds.length), h('span', null, '🎵 ' + P.music.length),
-      h('span', { class: 'spacer' }), h('span', null, (App.file ? App.file.replace(/^.*[\\/]/, '') : 'unsaved project') + (App.dirty ? '  ● unsaved changes' : '  ✓ saved')));
+    const stat = (icon, n, label) => h('span', { class: 'st', title: label }, ic(icon), n);
+    st.replaceChildren(stat('sprites', P.sprites.length, 'Sprites'), stat('objects', P.objects.length, 'Objects'), stat('levels', P.levels.length, 'Levels'), stat('sounds', P.sounds.length, 'Sounds'), stat('music', P.music.length, 'Music'),
+      h('span', { class: 'spacer' }),
+      h('span', { class: 'muted' }, App.file ? App.file.replace(/^.*[\\/]/, '') : 'unsaved project'),
+      h('span', { class: 'save' + (App.dirty ? ' dirty' : '') }, h('i'), App.dirty ? 'Unsaved changes' : 'All changes saved'));
   }
 
   /* ---------- tabs ---------- */
@@ -88,13 +91,22 @@
     } catch (e) { toast('Could not open project: ' + e.message, 'err'); }
   }
   App.showTemplates = function (first) {
-    const body = h('div', null, h('p', { class: 'hint' }, first ? 'Welcome to 2plat! Pick a starting point — you can change everything.' : 'Starting a new project replaces the current one.'),
-      ...Plat2Templates.list.map((t) => h('div', { class: 'tpl', onclick: async () => {
-        if (!first && !(await guardDirty())) return;
-        document.querySelectorAll('.modal-back').forEach((m) => m.remove());
-        loadProject(Plat2Templates.make(t.id)); App.dirty = !first; updateTitle(); updateStatus(); setTab(t.id === 'blank' ? 'sprites' : 'levels', true);
-      } }, h('div', null, h('b', null, t.name), h('div', { class: 'muted' }, t.desc)))));
-    modal({ title: first ? 'New game' : 'New project', body, buttons: [{ label: first ? 'Close' : 'Cancel' }], width: 520 });
+    const pick = async (t) => {
+      if (!first && !(await guardDirty())) return;
+      document.querySelectorAll('.modal-back').forEach((m) => m.remove());
+      loadProject(Plat2Templates.make(t.id)); App.dirty = !first; updateTitle(); updateStatus(); setTab(t.id === 'blank' ? 'sprites' : 'levels', true);
+      if (first && window.Plat2Tour) setTimeout(() => Plat2Tour.start(true), 350);
+    };
+    const card = (t) => {
+      const art = t.art || { bg: ['#2a2c3a', '#1a1b24'], sprites: [] };
+      const imgs = (Plat2Templates.preview(t.id) || []).map((src) => h('img', { src, alt: '' }));
+      return h('button', { class: 'tpl', type: 'button', onclick: () => pick(t) },
+        h('div', { class: 'tpl-art', style: { background: 'linear-gradient(180deg,' + art.bg[0] + ',' + art.bg[1] + ')' } }, imgs.length ? null : h('div', { class: 'tpl-mark' }, ic('sparkle')), ...imgs),
+        h('div', { class: 'tpl-body' }, h('span', { class: 'tpl-tag' }, t.tag || ''), h('b', null, t.name), h('span', null, t.desc)));
+    };
+    const body = h('div', null, h('p', { class: 'hint', style: { marginTop: 0 } }, first ? 'Pick a starting point. Everything in it can be changed, so you can\u2019t get this wrong.' : 'Starting a new project replaces the current one.'),
+      h('div', { class: 'tpl-grid' }, ...Plat2Templates.list.map(card)));
+    modal({ title: first ? 'Welcome to 2plat. What do you want to make?' : 'New project', body, buttons: [{ label: first ? 'Skip' : 'Cancel' }], width: 780 });
   };
 
   /* ---------- playtest ---------- */
@@ -125,10 +137,11 @@
     const onKey = (e) => { if (e.key === 'F8') { e.preventDefault(); close(); } else if (e.key === 'F5') { e.preventDefault(); restart(); } };
     const start = async () => {
       game = new Plat2.Game(cv, clone(App.proj), { audio: App.sharedAudio(), skipTitle: opts.skipTitle !== false, startLevel: lvIdx });
+      App.game = game;
       await game.load(); fitCanvas(); game.start(); cv.focus();
     };
     ov.append(
-      h('div', { class: 'bar' }, h('b', { style: { color: 'var(--accent)' } }, '▶ Playtest'), h('span', { class: 'muted' }, 'Move: arrows/WASD · Jump: Space · Action: X · Pause: Esc · Mute: M · Restart: F5 · Back: F8'),
+      h('div', { class: 'bar' }, h('b', null, ic('play'), 'Playtest'), h('span', { class: 'muted' }, 'Move: arrows / WASD   Jump: Space   Action: X   Pause: Esc   Mute: M   Restart: F5   Back: F8'),
         h('span', { class: 'spacer' }), h('button', { class: 'btn', onclick: restart }, '↻ Restart'), h('button', { class: 'btn danger', onclick: close }, '✕ Back to editor')),
       h('div', { class: 'stage' }, cv));
     window.addEventListener('resize', fitCanvas); window.addEventListener('keydown', onKey, true);
@@ -153,22 +166,23 @@
   function showHelp() {
     const row = (a, b) => h('tr', null, h('td', null, h('kbd', null, a)), h('td', null, b));
     modal({
-      title: '2plat — quick guide', width: 640, buttons: [{ label: 'Got it', primary: true }],
+      title: 'Quick guide', width: 660, buttons: [{ label: 'Take the tour', onclick: () => { setTimeout(() => window.Plat2Tour && Plat2Tour.start(true), 200); } }, { label: 'Got it', primary: true }],
       body: h('div', null,
-        h('p', null, h('b', null, 'Make a game in 5 steps')),
-        h('ol', null, h('li', null, h('b', null, 'Sprites'), ' — draw pixel art (or import PNGs), with animation frames.'),
-          h('li', null, h('b', null, 'Objects'), ' — turn sprites into things: players, enemies, blocks, coins. Pick a behavior and add logic rules.'),
-          h('li', null, h('b', null, 'Levels'), ' — paint objects onto a grid. Press ▶ to playtest right there.'),
-          h('li', null, h('b', null, 'Sounds & Music'), ' — design effects and write tunes with the piano roll.'),
-          h('li', null, h('b', null, 'Settings'), ' — resolution, gravity, variables. Then ', h('b', null, 'Export'), ' a standalone HTML game anyone can play.')),
-        h('p', null, h('b', null, 'Shortcuts')),
+        h('ol', { class: 'guide-steps' },
+          h('li', null, h('div', null, h('b', null, 'Sprites'), h('div', { class: 'muted' }, 'Draw pixel art, or import PNGs. Add frames to animate.'))),
+          h('li', null, h('div', null, h('b', null, 'Objects'), h('div', { class: 'muted' }, 'Turn sprites into players, enemies, blocks and coins. Pick a behavior, then add logic rules.'))),
+          h('li', null, h('div', null, h('b', null, 'Levels'), h('div', { class: 'muted' }, 'Paint objects onto a grid and press Play to test right there.'))),
+          h('li', null, h('div', null, h('b', null, 'Sounds & Music'), h('div', { class: 'muted' }, 'Design effects and write tunes on the piano roll.'))),
+          h('li', null, h('div', null, h('b', null, 'Settings & Export'), h('div', { class: 'muted' }, 'Set resolution, gravity and variables, then export one HTML file anyone can play.')))),
+        h('div', { class: 'section-title' }, 'Shortcuts'),
         h('table', { class: 'help' },
-          row('Ctrl+S', 'Save project'), row('Ctrl+O', 'Open project'), row('Ctrl+Z / Ctrl+Y', 'Undo / redo (in the sprite and level editors)'),
-          row('F5', 'Playtest from the start level'), row('F6', 'Playtest the level you are editing'),
+          row('Ctrl+S', 'Save project'), row('Ctrl+O', 'Open project'), row('Ctrl+Z / Ctrl+Y', 'Undo / redo (sprite and level editors)'),
+          row('F5', 'Play from the start level'), row('F6', 'Play the level you are editing'),
           row('B E G I L R O', 'Tool shortcuts (brush, eraser, fill/grid, picker, line, rect, ellipse)'),
+          row('1 - 6', 'Jump between the tabs'),
           row('Space + drag', 'Pan the level view (also middle mouse)'), row('Wheel', 'Zoom the level view'),
           row('Del / arrows', 'Delete / nudge selected objects (Select tool)'), row('Ctrl+C / V', 'Copy / paste selection')),
-        h('p', { class: 'hint' }, 'Your work autosaves in this app; use Save to keep a .2plat file. Logic rules are the heart of 2plat: "When touching Coin → destroy it, add 10 to score, play sound."')),
+        h('p', { class: 'hint' }, 'Your work autosaves in this app; use Save to keep a .2plat file. Rules are the heart of 2plat: "When touching Coin: destroy it, add 10 to score, play sound."')),
     });
   }
 
@@ -183,6 +197,7 @@
     if (e.key === 'F5') { e.preventDefault(); App.play({}); return; }
     if (e.key === 'F6') { e.preventDefault(); App.play({ startLevel: levelIndexForPlay() }); return; }
     if (typing(e.target)) return;
+    if (!mod && !e.altKey && /^[1-6]$/.test(e.key) && App.tab !== 'levels' && App.tab !== 'music') { setTab(ORDER[+e.key - 1]); return; }
     const ed = App.editors[App.tab];
     if (ed && ed.onKey && ed.onKey(e)) return;
   });
@@ -196,19 +211,23 @@
   /* ---------- shell ---------- */
   function buildShell() {
     const app = $('#app');
+    const tip = (k) => App.editors[k].title + '  (' + (ORDER.indexOf(k) + 1) + ')';
     app.replaceChildren(
       h('div', { id: 'top' },
-        h('div', { id: 'logo' }, '2', h('span', null, 'plat')),
-        h('input', { id: 'pname', type: 'text', title: 'Project name', oninput: (e) => { App.proj.name = e.target.value; App.touch(); } }),
-        h('button', { class: 'btn', onclick: () => App.showTemplates() }, '📄 New'), h('button', { class: 'btn', onclick: openProject }, '📂 Open'),
-        h('button', { class: 'btn', onclick: () => saveProject(false), title: 'Ctrl+S' }, '💾 Save'),
-        h('button', { class: 'btn', onclick: () => App.exportHtml() }, '🌐 Export game'),
-        h('button', { class: 'btn', title: 'Choose the color palette for the sprite editor', onclick: () => Plat2Palettes.openMenu(() => App.editors.sprites.paletteChanged()) }, '🎨 Palettes'),
+        h('div', { id: 'logo' }, '2', h('span', null, 'plat'), h('small', null, 'v' + (window.PLAT2_VERSION || ''))),
+        h('input', { id: 'pname', type: 'text', title: 'Project name', spellcheck: 'false', oninput: (e) => { App.proj.name = e.target.value; App.touch(); } }),
+        h('div', { class: 'vsep' }),
+        h('button', { class: 'btn ghost', title: 'New project', onclick: () => App.showTemplates() }, ic('filePlus'), 'New'),
+        h('button', { class: 'btn ghost', title: 'Open (Ctrl+O)', onclick: openProject }, ic('folder'), 'Open'),
+        h('button', { class: 'btn ghost', title: 'Save (Ctrl+S)', onclick: () => saveProject(false) }, ic('save'), 'Save'),
+        h('div', { class: 'vsep' }),
+        h('button', { class: 'btn ghost', title: 'Export a standalone HTML game', onclick: () => App.exportHtml() }, ic('export'), 'Export'),
+        h('button', { class: 'btn ghost', title: 'Choose the color palette for the sprite editor', onclick: () => Plat2Palettes.openMenu(() => App.editors.sprites.paletteChanged()) }, ic('palette'), 'Palettes'),
         h('span', { class: 'spacer' }),
-        h('button', { class: 'btn', onclick: showHelp }, '? Help'),
-        h('button', { class: 'btn play', title: 'F5', onclick: () => App.play({}) }, '▶ Play')),
+        h('button', { class: 'btn ghost', title: 'Quick guide and tour', onclick: showHelp }, ic('help'), 'Help'),
+        h('button', { class: 'btn play', id: 'play-btn', title: 'Play the game (F5)', onclick: () => App.play({}) }, ic('play'), 'Play')),
       h('div', { id: 'main' },
-        h('div', { id: 'rail' }, ORDER.map((k) => h('button', { class: 'rail-btn', 'data-tab': k, onclick: () => setTab(k) }, h('span', { class: 'ic' }, App.editors[k].icon), h('span', { class: 'tx' }, App.editors[k].title)))),
+        h('div', { id: 'rail' }, ORDER.map((k) => h('button', { class: 'rail-btn', id: 'rail-' + k, title: tip(k), 'data-tab': k, onclick: () => setTab(k) }, h('span', { class: 'ic' }, ic(App.editors[k].iconName || 'dot')), h('span', { class: 'tx' }, App.editors[k].title)))),
         h('div', { id: 'content' }, ORDER.map((k) => { const pane = h('div', { class: 'pane', id: 'pane-' + k, 'data-tab': k }); App.editors[k].mount(pane); return pane; }))),
       h('div', { id: 'status' }));
     document.body.append(h('div', { id: 'play' }));
@@ -221,7 +240,6 @@
     try { const s = localStorage.getItem('2plat.autosave'); if (s) p = JSON.parse(s); } catch (e) { p = null; }
     if (p) { try { loadProject(p); App.dirty = true; updateTitle(); updateStatus(); toast('Restored your last session', 'ok'); } catch (e) { p = null; } }
     if (!p) { loadProject(Plat2Templates.make('platformer')); App.dirty = false; updateTitle(); updateStatus(); setTab('levels'); App.showTemplates(true); }
-    if (window.Plat2Events) Plat2Events.announce(toast);
     if (API && API.onMenu) API.onMenu((a) => {
       if (a === 'new') App.showTemplates(); else if (a === 'open') openProject(); else if (a === 'save') saveProject(false); else if (a === 'saveas') saveProject(true);
       else if (a === 'export') App.exportHtml(); else if (a === 'play') App.play({}); else if (a === 'help') showHelp();
